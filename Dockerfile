@@ -3,7 +3,7 @@ FROM python:3.10-slim-bullseye
 RUN mkdir /app
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y python3-pip 
+RUN apt-get update && apt-get install -y python3-pip python3-opencv
 
 COPY . .
 
