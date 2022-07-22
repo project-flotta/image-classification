@@ -33,7 +33,10 @@ docker run --device /dev/video0 {imagename}
 - `capture = True`      *start capturing if True*
 - `folder = "images/"`  *path to store images*
 
-**Example** [Video of Output Images](https://youtu.be/RHNfVsw2V7E)
+### **Example** 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=RHNfVsw2V7E
+" target="_blank"><img src="http://img.youtube.com/vi/RHNfVsw2V7E/0.jpg" 
+alt="captured snapshots example" /></a>
 
 ## Limitation and Workaround
 Currently the tiny base model detects only 80 object classes `dnn-model/classes.txt` which will be upgraded by training the model on custom datasets of most common object classes. 
