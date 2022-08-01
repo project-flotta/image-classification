@@ -26,11 +26,13 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 # Storing current time in variable
 start_time = time.time()
 
-# Configurations
-thres = os.environ.get(thres, 0.25)        # confidence threshold
-timeInterval = 5    # time interval for capturing
-capture = True      # capture if True
-folder = "images/"  # path to store images
+# Configurations with their default values set.
+thres = os.getenv("THRES", 0.25)        # confidence threshold
+timeInterval = os.getenv("TIMEINT", 5)    # time interval for capturing
+capture = os.getenv("CAPTURE", True)      # capture if True
+
+# Path to store images
+folder = "images/"  
 
 try:
     if not os.path.exists(folder):
@@ -43,6 +45,7 @@ font = cv2.FONT_HERSHEY_PLAIN
 font_scale = 1
 thick = 2
 
+# cap.isOpened() to check cap object has started capturing the frame.
 while cap.isOpened() and capture:
     # Get Frames
     ret, frame = cap.read()
