@@ -23,27 +23,40 @@ cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-# Storing current time in variable
-start_time = time.time()
+# Configurations
+thres = os.getenv("THRES",0.25)        # confidence threshold
+timeInterval = os.getenv("TIMEINT",5)    # time interval for capturing
+capture = os.getenv("CAPTURE",True)      # capture if True
+folder = "images/"  # path to store images
 
-# Configurations with their default values set.
-thres = os.getenv("THRES", 0.25)        # confidence threshold
-timeInterval = os.getenv("TIMEINT", 5)    # time interval for capturing
-capture = os.getenv("CAPTURE", True)      # capture if True
 
-# Path to store images
-folder = "images/"  
+# Object Detection
+def objdetect(frame, thres):
+    (class_ids, scores, bboxes) = model.detect(
+            frame, confThreshold=thres, nmsThreshold=0.4
+    )
+    for class_id, score, bbox in zip(class_ids, scores, bboxes):
+        (x, y, w, h) = bbox
+        class_name = classes[class_id]
 
-try:
-    if not os.path.exists(folder):
-        os.mkdir(folder)
-except PermissionError as pe:
-    print(pe)
+        cv2.putText(
+            frame,
+            class_name.capitalize(),
+            (x, y - 10),
+            cv2.FONT_HERSHEY_PLAIN,
+            fontScale=1,
+            color=(0, 200, 50),
+            thickness=2,
+        )
 
-# Font/Box style used for labelling object detected
-font = cv2.FONT_HERSHEY_PLAIN
-font_scale = 1
-thick = 2
+        cv2.rectangle(
+            frame,
+            (x, y),
+            (x + w, y + h),
+            color=(0, 200, 50),
+            thickness=2,
+        )
+
 
 # cap.isOpened() to check cap object has started capturing the frame.
 while cap.isOpened() and capture:
@@ -51,45 +64,22 @@ while cap.isOpened() and capture:
     ret, frame = cap.read()
 
     if ret:
-        # Object Detection
-        (class_ids, scores, bboxes) = model.detect(
-            frame, confThreshold=thres, nmsThreshold=0.4
-        )
-        for class_id, score, bbox in zip(class_ids, scores, bboxes):
-            (x, y, w, h) = bbox
-            class_name = classes[class_id]
+        # Error Handling
+        try:
+            if not os.path.exists(folder):
+                os.mkdir(folder)
+        except PermissionError as pe:
+            print("Cannot create folder "+str(pe))
+            break
+        else:
+            objdetect(frame, thres)
+        
+        # Saving images to specified folder.
+        filename = "{}.jpeg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+        cv2.imwrite(os.path.join(folder, filename), frame)
 
-            cv2.putText(
-                frame,
-                class_name.capitalize(),
-                (x, y - 10),
-                font,
-                font_scale,
-                (0, 200, 50),
-                thick,
-            )
-
-            cv2.rectangle(
-                frame,
-                (x, y),
-                (x + w, y + h),
-                (0, 200, 50),
-                thick,
-            )
-        """
-        Uncomment the below lines to see real-time 
-        feed of object detection.
-        """
-        #cv2.imshow("ObjectDetection", frame)
-        #cv2.waitKey(1)
-
-        if int(round(time.time() - start_time, 2)) >= timeInterval:
-            filename = "{}.jpeg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-            cv2.imwrite(os.path.join(folder, filename), frame)
-
-            # Resetting variable to current time
-            start_time = time.time()
-
+        # Suspend execution for set time interval.
+        time.sleep(timeInterval)
     else:
         break
 
