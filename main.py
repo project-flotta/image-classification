@@ -5,6 +5,7 @@ import os
 import time
 from datetime import datetime
 
+
 # Opencv DNN
 net = cv2.dnn.readNet("dnn_model/yolov4-tiny.weights", "dnn_model/yolov4-tiny.cfg")
 model = cv2.dnn_DetectionModel(net)
@@ -31,7 +32,7 @@ folder = "images/"  # path to store images
 
 
 # Object Detection
-def objdetect(frame, thres):
+def objDetect(frame, thres):
     (class_ids, scores, bboxes) = model.detect(
             frame, confThreshold=thres, nmsThreshold=0.4
     )
@@ -58,30 +59,27 @@ def objdetect(frame, thres):
         )
 
 
-# cap.isOpened() to check cap object has started capturing the frame.
-while cap.isOpened() and capture:
-    # Get Frames
-    ret, frame = cap.read()
+try:
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+except PermissionError as pe:
+    print(f'Cannot create folder {pe}')
+else:
+    while cap.isOpened() and capture:
+        # Get Frames
+        ret, frame = cap.read()
 
-    if ret:
-        # Error Handling
-        try:
-            if not os.path.exists(folder):
-                os.mkdir(folder)
-        except PermissionError as pe:
-            print("Cannot create folder "+str(pe))
-            break
-        else:
-            objdetect(frame, thres)
+        if ret:
+            objDetect(frame, thres)
         
-        # Saving images to specified folder.
-        filename = "{}.jpeg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-        cv2.imwrite(os.path.join(folder, filename), frame)
+            # Saving images to specified folder.
+            filename = "{}.jpeg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+            cv2.imwrite(os.path.join(folder, filename), frame)
 
-        # Suspend execution for set time interval.
-        time.sleep(timeInterval)
-    else:
-        break
+            # Suspend execution for set time interval.
+            time.sleep(timeInterval)
+        else:
+            break
 
 cap.release()
 cv2.destroyAllWindows()
