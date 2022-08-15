@@ -47,6 +47,9 @@ RUN mkdir -p /opt/opencv-${OPENCV_VERSION}/build && \
   -D BUILD_ANDROID_EXAMPLES=NO \
   -D INSTALL_PYTHON_EXAMPLES=NO \
   -D BUILD_DOCS=NO \
+  -D BUILD_TESTS=NO \
+  -D BUILD_PERF_TESTS=NO \
+  -D BUILD_JAVA=NO \
   -D BUILD_opencv_python2=NO \
   -D BUILD_opencv_python3=ON \
   -D PYTHON3_EXECUTABLE=/usr/local/bin/python \
@@ -62,8 +65,6 @@ RUN mkdir -p /opt/opencv-${OPENCV_VERSION}/build && \
   apk del build-dependencies && \
   rm -rf /var/cache/apk/*
 
-# allows to run bash (remove me)
-RUN apk add --update bash --no-cache
 # runtime dependencies
 RUN apk add --update --no-cache openblas libstdc++ libtbb libjpeg libwebp libpng libtiffxx
 
@@ -71,12 +72,6 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY . .
-
-#RUN python -m venv env && source ./env/bin/activate && \
-#    pip install --upgrade pip setuptools && \
-#    pip install --no-cache-dir opencv-python
-
-# RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PATH="/py/bin:$PATH"
 
