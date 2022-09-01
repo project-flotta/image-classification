@@ -1,0 +1,21 @@
+apiVersion: management.project-flotta.io/v1alpha1
+kind: EdgeWorkload
+metadata:
+  name: edge-ic-workload
+spec:
+  deviceSelector:
+    matchLabels:
+      app: edge-device-app
+  data:
+    egress:
+      - source: tmp
+        target: ic-edge-device
+  type: pod
+  pod:
+    spec:
+      containers:
+        - name: edge-ic-workload
+          image: quay.io/dpshekhawat/img-class:v1
+          securityContext:
+            capabilities:
+              add: ["ALL"]
