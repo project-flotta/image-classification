@@ -4,7 +4,7 @@ metadata:
   name: ic-edge-device
   namespace: default
   labels:
-    app: edge-device-app
+    app: camera
 spec:
   storage:
     s3:
