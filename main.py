@@ -28,7 +28,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 threshold = float(os.getenv("THRES",0.35))  # confidence threshold
 timeinterval = int(os.getenv("TIMEINT",5))  # time interval for capturing
 capture = bool(os.getenv("CAPTURE",True))  # capture if True
-folder = "images/"  # path to store images
+folder = "../export/images/"  # path to store images
 
 
 # Object Detection
