@@ -19,6 +19,10 @@ spec:
       containers:
         - name: edge-ic-workload
           image: quay.io/dpshekhawat/img-class:latest
+          envFrom:
+          - configMapRef:
+              name: ic-config
+              optional: false
           volumeMounts:
           - mountPath: /dev/video0
             name: video
