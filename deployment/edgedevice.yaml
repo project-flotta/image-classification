@@ -1,0 +1,12 @@
+apiVersion: management.project-flotta.io/v1alpha1
+kind: EdgeDevice
+metadata:
+  name: ic-edge-device
+  namespace: default
+  labels:
+    app: camera
+spec:
+  storage:
+    s3:
+      configMapName: "s3config"
+      secretName: "s3secret"
