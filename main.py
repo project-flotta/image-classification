@@ -4,7 +4,7 @@ import cv2
 import os
 import time
 from datetime import datetime
-
+import json
 
 # Opencv DNN
 net = cv2.dnn.readNet("dnn_model/yolov4-tiny.weights", "dnn_model/yolov4-tiny.cfg")
@@ -25,61 +25,84 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 # Configurations
-thres = os.getenv("THRES",0.25)        # confidence threshold
-timeInterval = os.getenv("TIMEINT",5)    # time interval for capturing
-capture = os.getenv("CAPTURE",True)      # capture if True
+thres = float(os.getenv("THRES",0.35))        # confidence threshold
+timeInterval = int(os.getenv("TIMEINT",5))    # time interval for capturing
+capture = bool(os.getenv("CAPTURE",True))      # capture if True
 folder = "images/"  # path to store images
 
 
 # Object Detection
-def objDetect(frame, thres):
-    (class_ids, scores, bboxes) = model.detect(
-            frame, confThreshold=thres, nmsThreshold=0.4
-    )
-    for class_id, score, bbox in zip(class_ids, scores, bboxes):
-        (x, y, w, h) = bbox
-        class_name = classes[class_id]
+class objDetection():
+    def __init__(self, frame, threshold):
+        self.frame = frame
+        self.threshold = threshold
 
-        cv2.putText(
-            frame,
-            class_name.capitalize(),
-            (x, y - 10),
-            cv2.FONT_HERSHEY_PLAIN,
-            fontScale=1,
-            color=(0, 200, 50),
-            thickness=2,
+    def objDetect(self):
+        detected = []
+        (class_ids, scores, bboxes) = model.detect(
+                self.frame, confThreshold=self.threshold, nmsThreshold=0.4
         )
+        for class_id, score, bbox in zip(class_ids, scores, bboxes):
+            (x, y, w, h) = bbox
+            class_name = classes[class_id]
+            
+            if class_name not in detected:
+                detected.append(class_name)
 
-        cv2.rectangle(
-            frame,
-            (x, y),
-            (x + w, y + h),
-            color=(0, 200, 50),
-            thickness=2,
-        )
+            cv2.putText(
+                self.frame,
+                class_name.capitalize(),
+                (x, y - 10),
+                cv2.FONT_HERSHEY_PLAIN,
+                fontScale=1,
+                color=(0, 200, 50),
+                thickness=2,
+            )
+
+            cv2.rectangle(
+                self.frame,
+                (x, y),
+                (x + w, y + h),
+                color=(0, 200, 50),
+                thickness=2,
+            )
+
+        return detected
+
+def jsonData(title, detected, folder):
+    data = {
+        "title": title,
+        "detected": detected
+    }
+    name = f"{title}.json"
+    with open(os.path.join(folder, name), "w") as file:
+        json.dump(data, file)
 
 
 try:
     if not os.path.exists(folder):
         os.mkdir(folder)
 except PermissionError as pe:
-    print(f'Cannot create folder {pe}')
+    print(f"Cannot create folder {pe}")
 else:
     while cap.isOpened() and capture:
         # Get Frames
         ret, frame = cap.read()
 
         if ret:
-            objDetect(frame, thres)
-        
-            # Saving images to specified folder.
-            filename = "{}.jpeg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-            cv2.imwrite(os.path.join(folder, filename), frame)
+            classifier = objDetection(frame, thres)
+            detected = classifier.objDetect()
+            
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename = f"{timestamp}.jpeg"
 
+            if len(detected)!=0:
+                # Saving data to specified folder.
+                cv2.imwrite(os.path.join(folder, filename), frame)
+                jsonData(timestamp, detected, folder)
             # Suspend execution for set time interval.
             time.sleep(timeInterval)
         else:
             break
 
 cap.release()
-cv2.destroyAllWindows()
