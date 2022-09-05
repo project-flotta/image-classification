@@ -1,49 +1,78 @@
 # Image Classification tool for Edge Devices
 
-## Table of contents
-
-- [Motivation](#why-is-the-need)
+- [Motivation](#need)
 - [Resources Used](#model-used)
-- [**How to use**](#how-to-use)
-- [[WIP]](#work-in-progress)
+- [**How to use**](#run)
 
-## Why is the need
+## Need
 Objection detection is of vital importance to many fields, such as autonomous driving, outdoor robotics, and computer vision. Many approaches of object detection can hardly run on the resource-constrained edge devices with the approach of applying real-time object detection on edge devices with low inference time and high accuracy. 
 
 **Why for Edge Devices?** -
 The need for on-device data analysis arises in cases where decisions based on data processing have to be made immediately. For example, there may not be sufficient time for data to be transferred to back-end servers, or there is no connectivity at all.
 However, with the arrival of powerful, low-energy consumption Internet of Things devices, computations can now be executed on edge devices such as robots themselves. This has given rise to the era of deploying advanced machine learning methods at the edges of the network for “edge-based” ML.
 
-## Model Used 
-YOLOv4-tiny is especially useful if you have limited compute resources in either research or deployment, and are willing to tradeoff some detection performance for speed. It will display the predicted classes as well as the image with bounding boxes drawn on top of it.
+### Model Used 
+State-of-the-art lightweight Yolov4-tiny model is especially useful if you have limited compute resources in either research or deployment, and are willing to tradeoff some detection performance for speed. It will display the predicted classes as well as the image with bounding boxes drawn on top of it.
 
-## How to use
-- Requirements (docker will take care of these)
-  - Python 3.10
+Workload Requirements 
+  - Python >=3.7
   - OpenCV 4.6
-  - YOLOv4-tiny (.weights and .cfg)
   
-You will need a webcam connected to your device that OpenCV connect to or it won't work. If you have multiple webcams connected and want to connect a specific one to use, change the device id from 0 to 1 (OpenCV uses webcam 0 by default).
+>Docker and Kubernetses required.
+
+## Run
+  
+You will need a webcam mounted to your workload or it fails with no device connected. Change the device id from 0 to 1/2/3... specific to your requirements
+```yaml
+ - mountPath: /dev/video0
+   name: video
 ```
-docker run --device /dev/video0 {imagename}
-```
+
 **Configurable parameters**
-- `thres = 0.25`        *confidence threshold currently 25%*
-- `timeInterval = 5`    *timeinterval for capturing every 5 secs*
-- `capture = True`      *start capturing if True*
-- `folder = "images/"`  *path to store images*
+- `threshold = 0.25`        *confidence threshold suggested 25%*
+- `timeinterval = 5`    *timeinterval for detection in seconds*
+- `capture = True`      *boolean for enabling capture*
+  
+configuration can be provided to the workload using "`configmaps.yaml`".
+
+**About export folder**
+```shell
+folder = "../export/images/"  
+##The files under the export folder are for data synchronization
+```
+
+**JSON Output**
+```json
+{"title": "2022-09-04_16-08-58", "detected": ["tvmonitor", "laptop", "keyboard"]}
+```
+Using json for keeping track of detected objects specific to images.
+
+**Customization**
+
+Skip this if you are not training or fine-tuning anything (you simply want to forward flow a trained net)
+
+For example, if you want to work with only 3 classes person, laptop, bag; edit `classes.txt` as follows
+```shell
+person
+laptop
+bag
+```
+And that's it. The algorithm will take care of the rest.
+
+Deploy the workloads on the device.
 
 ### **Example Snapshots** 
 
-[![Captured Snapshots example](http://img.youtube.com/vi/RHNfVsw2V7E/0.jpg)](http://www.youtube.com/watch?v=RHNfVsw2V7E)
+[![Captured Snapshots example](http://img.youtube.com/vi/RHNfVsw2V7E/0.jpg)](http://www.youtube.com/watch?v=RHNfVsw2V7E) 
 
-## Limitation and Workaround
+(Click on the image to see the video)
+
+**Limitation and Workaround**
+
 Currently the tiny base model detects only 80 object classes `dnn-model/classes.txt` which will be upgraded by training the model on custom datasets of most common object classes. 
 
-### Improvements done
-- captured image size reduced to ~100KB which was used to be ~300KB.
-- improved exit strategy.
+## License
+This project is released under the Apache 2.0 license. Please see the [LICENSE](https://github.com/dpshekhawat/image-classification/blob/main/LICENSE) file for more information.
 
-### Work in Progress
-- Creating a web presentation for the captured snapshots
-- Writing test cases
+## Contributing
+We actively welcome your pull requests!
