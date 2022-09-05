@@ -4,7 +4,7 @@ import cv2
 import os
 import time
 from datetime import datetime
-
+import json
 
 # Opencv DNN
 net = cv2.dnn.readNet("dnn_model/yolov4-tiny.weights", "dnn_model/yolov4-tiny.cfg")
@@ -25,20 +25,24 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 # Configurations
-thres = os.getenv("THRES",0.25)        # confidence threshold
-timeInterval = os.getenv("TIMEINT",5)    # time interval for capturing
-capture = os.getenv("CAPTURE",True)      # capture if True
-folder = "images/"  # path to store images
+threshold = float(os.getenv("THRES",0.35))  # confidence threshold
+timeinterval = int(os.getenv("TIMEINT",5))  # time interval for capturing
+capture = bool(os.getenv("CAPTURE",True))  # capture if True
+folder = "../export/images/"  # path to store images
 
 
 # Object Detection
-def objDetect(frame, thres):
+def object_detect(frame, threshold):
+    detected = []
     (class_ids, scores, bboxes) = model.detect(
-            frame, confThreshold=thres, nmsThreshold=0.4
+            frame, confThreshold=threshold, nmsThreshold=0.4
     )
     for class_id, score, bbox in zip(class_ids, scores, bboxes):
         (x, y, w, h) = bbox
         class_name = classes[class_id]
+        
+        if class_name not in detected:
+            detected.append(class_name)
 
         cv2.putText(
             frame,
@@ -58,28 +62,44 @@ def objDetect(frame, thres):
             thickness=2,
         )
 
+    return detected
+
+
+def write_metadata(title, detected, folder):
+    data = {
+        "title": title,
+        "detected": detected
+    }
+    name = f"{title}.json"
+    with open(os.path.join(folder, name), "w") as file:
+        json.dump(data, file)
+
+
+def save_data(detected, folder):
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"{timestamp}.jpeg"
+    cv2.imwrite(os.path.join(folder, filename), frame)
+    write_metadata(timestamp, detected, folder)
+
 
 try:
     if not os.path.exists(folder):
         os.mkdir(folder)
 except PermissionError as pe:
-    print(f'Cannot create folder {pe}')
+    print(f"Cannot create folder {pe}")
 else:
     while cap.isOpened() and capture:
         # Get Frames
         ret, frame = cap.read()
 
         if ret:
-            objDetect(frame, thres)
-        
-            # Saving images to specified folder.
-            filename = "{}.jpeg".format(datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
-            cv2.imwrite(os.path.join(folder, filename), frame)
-
+            detected = object_detect(frame, threshold)
+            
+            if len(detected) != 0:
+                save_data(detected, folder)
             # Suspend execution for set time interval.
-            time.sleep(timeInterval)
+            time.sleep(timeinterval)
         else:
             break
 
 cap.release()
-cv2.destroyAllWindows()
