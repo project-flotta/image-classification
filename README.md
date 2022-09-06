@@ -30,6 +30,9 @@ Workload Requirements
 ## Run
 ***Note: For detailed description visit [Flotta](https://project-flotta.io/documentation/latest/intro/overview.html)***
 
+Working of the project -
+![Workflow](assets/images/workflow.jpg)
+
 **Before Getting Started let's understand few things -**
 
 If you have followed the documentation, in Flotta we create the user flotta as part of the flotta rpm installation and run the workloads with that user.
