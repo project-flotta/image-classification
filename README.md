@@ -9,10 +9,17 @@
 Objection detection is of vital importance to many fields, such as autonomous driving, outdoor robotics, and computer vision. Many approaches of object detection can hardly run on the resource-constrained edge devices with the approach of applying real-time object detection on edge devices with low inference time and high accuracy. 
 
 **Why for Edge Devices?** -
-The need for on-device data analysis arises in cases where decisions based on data processing have to be made immediately. With the arrival of powerful, low-energy consumption Internet of Things devices, computations can now be executed on edge devices such as robots themselves. This has given rise to the era of deploying advanced machine learning methods at the edges of the network for “edge-based” ML.
+The need for on-device data analysis arises in cases where decisions based on data processing have to be made immediately. With the arrival of powerful, low-energy consumption Internet of Things devices, computations can now be executed on edge devices such as robots. This has given rise to the era of deploying advanced machine learning methods at the edges of the network for “edge-based” Machine Learning.
 
 ### Model Used 
-State-of-the-art lightweight Yolov4-tiny model is especially useful if you have limited compute resources in either research or deployment, and are willing to tradeoff some detection performance for speed.
+State-of-the-art lightweight YOLOv4-tiny model(<50MB) is especially useful if you have limited compute resources in either research or deployment, and are willing to tradeoff some detection performance for speed.
+
+Key aspects:
+
+ - The FPS (Frames Per Second) in YOLOv4-tiny is approximately eight times that of YOLOv4. However, the accuracy for YOLOv4-tiny is 2/3rds that of YOLOv4 when tested on the MS COCO dataset.
+ - In contrast to YOLOv4, which has three YOLO heads, this model only has two, and it was trained using 29 pre-trained convolutional layers.
+ - Since faster inference time is more crucial than precision or accuracy while working in a real-time object detection environment, YOLOv4-tiny is a superior option than YOLOv4 for real-time object detection.
+  > Reference [here](https://arxiv.org/abs/2011.04244) and [here](https://arxiv.org/abs/2011.08036)
 
 Workload Requirements 
   - Python >=3.7
@@ -21,7 +28,7 @@ Workload Requirements
 >Docker and Kubernetes required.
 
 ## Run
-***Note: For detailed description visit [Flotta](https://project-flotta.io/blog.html)***
+***Note: For detailed description visit [Flotta](https://project-flotta.io/documentation/latest/intro/overview.html)***
 
 **Before Getting Started let's understand few things -**
 
@@ -97,7 +104,7 @@ There are two ways to start using the tool.
     
     Clone the github repository and start deploying the workload on the devices.
 
-Learn more on running workloads [here](https://project-flotta.io/documentation/v0_1_0/gsg/running_workloads.html).
+Learn more on running workloads [here](https://project-flotta.io/documentation/latest/gsg/running_workloads.html).
 
 Now let’s check that workload is deployed and running by -
 ```shell
