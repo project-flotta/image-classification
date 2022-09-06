@@ -1,31 +1,56 @@
 # Image Classification tool for Edge Devices
+| Note: Follow the [documentation](https://project-flotta.io/documentation/v0_2_0/intro/overview.html) to get started with [Flotta](https://project-flotta.io/).
 
 - [Motivation](#need)
-- [Resources Used](#model-used)
-- [**How to use**](#run)
-
+- [Resources](#model-used)
+- [How to use](#run)
+- [Getting Started](#getting-started)
 ## Need
 Objection detection is of vital importance to many fields, such as autonomous driving, outdoor robotics, and computer vision. Many approaches of object detection can hardly run on the resource-constrained edge devices with the approach of applying real-time object detection on edge devices with low inference time and high accuracy. 
 
 **Why for Edge Devices?** -
-The need for on-device data analysis arises in cases where decisions based on data processing have to be made immediately. For example, there may not be sufficient time for data to be transferred to back-end servers, or there is no connectivity at all.
-However, with the arrival of powerful, low-energy consumption Internet of Things devices, computations can now be executed on edge devices such as robots themselves. This has given rise to the era of deploying advanced machine learning methods at the edges of the network for “edge-based” ML.
+The need for on-device data analysis arises in cases where decisions based on data processing have to be made immediately. With the arrival of powerful, low-energy consumption Internet of Things devices, computations can now be executed on edge devices such as robots themselves. This has given rise to the era of deploying advanced machine learning methods at the edges of the network for “edge-based” ML.
 
 ### Model Used 
-State-of-the-art lightweight Yolov4-tiny model is especially useful if you have limited compute resources in either research or deployment, and are willing to tradeoff some detection performance for speed. It will display the predicted classes as well as the image with bounding boxes drawn on top of it.
+State-of-the-art lightweight Yolov4-tiny model is especially useful if you have limited compute resources in either research or deployment, and are willing to tradeoff some detection performance for speed.
 
 Workload Requirements 
   - Python >=3.7
   - OpenCV 4.6
   
->Docker and Kubernetses required.
+>Docker and Kubernetes required.
 
 ## Run
-  
-You will need a webcam mounted to your workload or it fails with no device connected. Change the device id from 0 to 1/2/3... specific to your requirements
+***Note: For detailed description visit [Flotta](https://project-flotta.io/blog.html)***
+
+**Before Getting Started let's understand few things -**
+
+If you have followed the documentation, in Flotta we create the user flotta as part of the flotta rpm installation and run the workloads with that user.
+
+Make sure on the device that flotta user group has access to the camera/webcam -
+```shell
+[root@device ~]# id flotta
+uid=1001(flotta) gid=1001(flotta) groups=1001(flotta),39(video)
+```
+if you can't see the video group, run the following command and check again.
+```shell
+[root@device ~]# usermod -a -G video flotta
+```
+And now the flotta user has access to the video group.
+
+You will need a webcam mounted to your workload or else it fails with no device connected. Change the device id from 0 to 1/2/3... specific to your device in `edgeworkload.yaml`.
 ```yaml
+volumemounts:
  - mountPath: /dev/video0
    name: video
+```
+(and here)
+```yaml
+volumes:
+- name: video 
+  hostPath:
+    path: /dev/video0
+    type: File
 ```
 
 **Configurable parameters**
@@ -36,16 +61,11 @@ You will need a webcam mounted to your workload or it fails with no device conne
 configuration can be provided to the workload using "`configmaps.yaml`".
 
 **About export folder**
+
+The files under the export folder are for data synchronization between the device and object storage.
 ```shell
 folder = "../export/images/"  
-##The files under the export folder are for data synchronization
 ```
-
-**JSON Output**
-```json
-{"title": "2022-09-04_16-08-58", "detected": ["tvmonitor", "laptop", "keyboard"]}
-```
-Using json for keeping track of detected objects specific to images.
 
 **Customization**
 
@@ -59,7 +79,45 @@ bag
 ```
 And that's it. The algorithm will take care of the rest.
 
-Deploy the workloads on the device.
+## Getting Started
+There are two ways to start using the tool.
+1. With Customization:
+   
+    Training the detection model(*suggested: transfer learning*) or by changing the object classes as shown above can help you customize the tool.
+
+    After that build the docker image and push it to the dockerhub then change it here -
+    ```yaml
+    pod:
+      spec:
+        containers:
+           - name: edge-ic-workload
+             image: quay.io/dpshekhawat/img-class:latest #change here
+    ```
+2. Using as is:
+    
+    Clone the github repository and start deploying the workload on the devices.
+
+Learn more on running workloads [here](https://project-flotta.io/documentation/v0_1_0/gsg/running_workloads.html).
+
+Now let’s check that workload is deployed and running by -
+```shell
+[dsingh@fedora ~]$ kubectl get edgedevice ff8612a5bd1a40cca403ac1fc95cc2ad -ojsonpath="{.status.workloads}"| jq .
+[
+  {
+    "lastTransitionTime": "2022-08-29T17:29:02Z",
+    "name": "camera",
+    "phase": "Running"
+  }
+]
+```
+(if in deploying phase wait for some time as it is pulling the image)
+
+You can check the images being captured, first ssh to the device and run -
+```shell
+[root@fedora]$ sudo su -l flotta -s /bin/bash -c "podman exec -it edge-ic-workload-edge-ic-workload ls ../export/images/"
+2022-08-29_17-32-58.jpeg      2022-08-29_17-33-03.jpeg
+2022-08-29_17-32-58.json      2022-08-29_17-33-03.json
+```
 
 ### **Example Snapshots** 
 
